@@ -4,12 +4,17 @@ export default async function handler(req, res) {
   
   const response = await fetch(targetUrl);
   
-  // Header တွေကို Copy ကူးခြင်း
+  // Header များကို ပြန်လည်ပေးပို့ခြင်း
   for (const [key, value] of response.headers.entries()) {
     res.setHeader(key, value);
   }
   
-  // ဖိုင်တစ်ခုလုံးကို Buffer မလုပ်ဘဲ stream ပြန်ပေးခြင်း
-  const stream = response.body;
-  stream.pipe(res);
+  // ဖိုင်ကို stream အနေဖြင့် ပြန်လည်ပို့ဆောင်ခြင်း
+  const reader = response.body.getReader();
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    res.write(value);
+  }
+  res.end();
 }
