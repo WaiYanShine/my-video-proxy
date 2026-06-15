@@ -1,7 +1,7 @@
 export default async function handler(req, res) {
-  // URL path ကို ဖြတ်ယူခြင်း
-  const path = req.url.replace('/api/proxy', '');
-  const targetUrl = "https://pub-3c15e32839f440a6bbcc0d356c9d9fb4.r2.dev" + path;
+  // R2 bucket လိပ်စာ
+  const r2Base = "https://pub-3c15e32839f440a6bbcc0d356c9d9fb4.r2.dev";
+  const targetUrl = r2Base + req.url;
   
   try {
     const response = await fetch(targetUrl);
@@ -11,7 +11,6 @@ export default async function handler(req, res) {
       res.setHeader(key, value);
     }
     
-    // ဖိုင်ကို ပြန်ပို့ခြင်း
     const buffer = await response.arrayBuffer();
     res.send(Buffer.from(buffer));
   } catch (err) {
