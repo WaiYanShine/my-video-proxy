@@ -5,19 +5,25 @@ export default async function handler(req) {
   const url = new URL(req.url);
   const targetUrl = r2Base + url.pathname;
 
-  // Browser ဆီကလာတဲ့ Range Header ကို R2 ဆီ ပို့ပေးခြင်း
   const range = req.headers.get('range');
   const headers = new Headers();
-  if (range) {
-    headers.set('range', range);
+  if (range) headers.set('range', range);
+
+  try {
+    const response = await fetch(targetUrl, { headers });
+
+    // R2 ထံမှ Error (404, 500) များလာပါက ထိုအတိုင်း ပြန်ပို့ပေးရန်
+    if (!response.ok && response.status !== 206) {
+      return new Response("Error fetching file", { status: response.status });
+    }
+
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+    });
+  } catch (err) {
+    // Network Error များအတွက်
+    return new Response("Internal Proxy Error", { status: 502 });
   }
-
-  const response = await fetch(targetUrl, { headers });
-
-  // R2 ဆီက ရလာတဲ့ response ကို ပြန်ပို့ပေးခြင်း
-  return new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers: response.headers,
-  });
 }
